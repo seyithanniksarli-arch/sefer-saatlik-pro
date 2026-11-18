@@ -1,0 +1,79 @@
+rules_version = '2';
+// Sefer Sırası – satılık sürüm güvenlik kuralları
+// Her durak sadece kendi verisini görür.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function girisli() { return request.auth != null; }
+    function sahip() { return girisli() && request.auth.token.email == "seyithanniksarli@gmail.com"; }
+    function kullanici() { return get(/databases/$(database)/documents/kullanicilar/$(request.auth.uid)).data; }
+    function kahya(d) {
+      return girisli() && exists(/databases/$(database)/documents/kullanicilar/$(request.auth.uid))
+        && kullanici().rol == 'kahya' && kullanici().durak == d;
+    }
+    function cihaz(d) { return /databases/$(database)/documents/duraklar/$(d)/cihazlar/$(request.auth.uid); }
+    function onayli(d) { return girisli() && exists(cihaz(d)) && get(cihaz(d)).data.onay == true; }
+    function yetkili(d) { return sahip() || kahya(d) || onayli(d); }
+    function yonetici(d) { return sahip() || kahya(d); }
+
+    // Kahya hesapları: sadece sahip oluşturur, herkes kendi kaydını okur
+    match /kullanicilar/{uid} {
+      allow read: if sahip() || (girisli() && request.auth.uid == uid);
+      allow write: if sahip();
+    }
+
+    match /duraklar/{d} {
+      // Durağın adı ve ayarları: giriş yapan herkes okur (şoför durak kodunu doğrulamak için), sadece kahya/sahip yazar
+      allow read: if girisli();
+      allow create, delete: if sahip();
+      allow update: if yonetici(d);
+
+      // Şoför telefonları
+      match /cihazlar/{uid} {
+        allow read: if yonetici(d) || (girisli() && request.auth.uid == uid);
+        // Şoför sadece kendine, onaysız istek açabilir
+        allow create: if yonetici(d) || (girisli() && request.auth.uid == uid
+                        && request.resource.data.onay == false && request.resource.data.plaka == '');
+        allow update: if yonetici(d) || (girisli() && request.auth.uid == uid
+                        && request.resource.data.onay == resource.data.onay
+                        && request.resource.data.plaka == resource.data.plaka);
+        allow delete: if yonetici(d) || (girisli() && request.auth.uid == uid);
+      }
+
+      // Günlük listeler
+      match /gunler/{tarih} {
+        allow read: if yetkili(d);
+        allow write: if yonetici(d);
+      }
+
+      // Plaka kilidi (bir plakayı aynı anda tek telefon takip eder)
+      match /takip/{plaka} {
+        allow read, write: if yetkili(d);
+      }
+
+      // Canlı konum: plaka içerir, yolcuya kapalı
+      match /canli/{plaka} {
+        allow read: if yetkili(d);
+        allow write: if yetkili(d);
+      }
+
+      // Yolcuya açık olaylar: kod bazlı, plaka yok (onaylı şoför yazar)
+      match /yolcu/{kod} {
+        allow read: if true;
+        allow write: if yetkili(d);
+      }
+
+      // Yolcu sayfası için yayımlanan sefer planı
+      match /plan/{tarih} {
+        allow read: if true;
+        allow write: if yonetici(d);
+      }
+    }
+
+    // Yolcuya açık durak listesi: ad, hatlar, koordinatlar ve kodlar (plaka yok)
+    match /yolcuDuraklari/{d} {
+      allow read: if true;
+      allow write: if sahip() || kahya(d);
+    }
+  }
+}

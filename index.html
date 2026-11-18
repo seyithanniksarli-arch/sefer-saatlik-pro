@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sefer Sırası</title>
+<link rel="icon" type="image/svg+xml" href="sofor-ikon.svg"><link rel="apple-touch-icon" href="sofor-ikon.png"><link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-title" content="Sefer Sırası"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0f8a57">
+<style>
+:root{--yesil:#1fa36a;--koyu:#0f8a57;--lac:#10202e;--mavi:#16507e;--sari:#ffcf33;--kirmizi:#d33b34;--zemin:#eef2f5;--gri:#5b6b7a;--cizgi:#d5dde5;--hat:#1fa36a}
+*{box-sizing:border-box}
+body{font-family:-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;margin:0;background:var(--zemin);color:var(--lac);font-size:18px;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;color:var(--lac);background:#fff;border:1.5px solid var(--cizgi);border-radius:10px;font-size:18px;padding:9px}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--yesil);box-shadow:0 0 0 3px rgba(31,163,106,.18)}
+textarea{width:100%;min-height:90px;font-size:16px;line-height:1.4}
+label{display:block;margin:12px 0 4px;color:#4d5d6b;font-weight:700;font-size:15px}
+.ust{background:linear-gradient(135deg,#0f8a57 0%,#1fa36a 45%,#16507e 100%);color:#fff;padding:18px 16px 46px;position:relative;overflow:hidden;display:flex;gap:12px;align-items:center}
+.ust::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-24px;height:48px;background:var(--zemin);border-radius:50% 50% 0 0}
+.ust img{width:50px;height:50px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.2))}
+.ust h1{margin:0;font-size:26px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.ust p{margin:5px 0 0;font-size:15px;font-weight:600;opacity:.92}
+.ust .kod{margin-left:auto;align-self:flex-start;text-align:right}
+.ust .kod b{display:inline-block;background:var(--sari);color:var(--lac);font-weight:900;font-size:15px;padding:6px 10px;border-radius:9px}
+.ust .kod button{display:block;margin:8px 0 0 auto;background:rgba(255,255,255,.18);border:0;color:#fff;font-size:13px;font-weight:700;padding:5px 9px;border-radius:8px}
+.ic{padding:0 14px 24px;position:relative;z-index:1;max-width:720px;margin:0 auto}
+.sekmeler{display:flex;gap:6px;margin-bottom:8px;background:#fff;padding:5px;border-radius:14px;box-shadow:0 2px 10px rgba(16,32,46,.07);flex-wrap:wrap}
+.sekmeler button{flex:1;min-width:70px;padding:12px 6px;font-size:16px;font-weight:700;border:0;border-radius:10px;background:transparent;color:#4d5d6b}
+.sekmeler button.aktif{background:var(--lac);color:#fff}
+.sekmeler.hatlar button.aktif{background:var(--hat)}
+details.bolum{background:#fff;border-radius:18px;margin:12px 0;padding:0 14px;box-shadow:0 2px 10px rgba(16,32,46,.07)}
+details.bolum>summary{font-size:20px;font-weight:900;padding:16px 2px;list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer}
+details.bolum>summary::-webkit-details-marker{display:none}
+details.bolum>summary::before{content:'›';display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;border-radius:50%;background:#eaf6f0;color:var(--koyu);font-size:24px;font-weight:900;transition:transform .15s}
+details.bolum[open]>summary::before{transform:rotate(90deg)}
+details.bolum[open]{padding-bottom:14px}
+.ana{display:block;width:100%;padding:16px;font-size:19px;font-weight:800;background:var(--yesil);color:#fff;border:0;border-radius:12px;margin:12px 0;box-shadow:0 2px 6px rgba(16,32,46,.12)}
+.ana.lac{background:var(--lac)}.ana.mavi{background:var(--mavi)}.ana.kir{background:var(--kirmizi)}.ana.gri{background:#7f8c8d}
+.ikili{display:flex;gap:8px}.ikili>*{flex:1}
+.kucuk{color:var(--gri);font-size:15px}
+table{width:100%;border-collapse:separate;border-spacing:0;margin-top:8px;font-size:17px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #edf0f3}
+th{background:var(--lac);color:#fff;text-align:left;font-weight:700}
+th,td{padding:9px 8px;border-bottom:1px solid #edf0f3}
+tr.uyari td{background:#fdecea}tr.bos td{background:#fff6d6}tr.ben td{background:#e6f6ee;font-weight:800}
+.arac{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.arac b{width:64px;font-size:20px}
+.arac select{flex:1}
+.arac input[type=checkbox]{width:26px;height:26px;accent-color:var(--kirmizi)}
+#sayac:not(:empty){background:var(--lac);color:#fff;border-radius:16px;padding:10px 12px;margin-top:8px}
+.sayi{font-size:84px;text-align:center;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+.etiket{font-size:30px;text-align:center;color:#3ddc97;font-weight:800}
+.uyar{background:#fdecea;color:#8a1f17;border-radius:14px;padding:14px 16px;font-size:18px;font-weight:700;line-height:1.35}
+.tam{position:fixed;inset:0;z-index:50;background:linear-gradient(150deg,#0f8a57 0%,#1fa36a 45%,#16507e 100%);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;overflow:auto}
+.tam .kutu{max-width:400px;width:100%;text-align:center}
+.tam h2{font-size:28px;margin:0 0 8px}
+.tam input{width:100%;font-size:22px;font-weight:800;text-align:center;border:0;border-radius:14px;padding:14px;margin-top:10px}
+.tam .ana{background:#fff;color:var(--koyu)}
+.tam .ana.ikinci{background:rgba(255,255,255,.16);color:#fff;box-shadow:none}
+.tam .bag{background:none;border:0;color:#fff;opacity:.75;font-size:15px;text-decoration:underline;margin-top:14px}
+.kodkutu{font-size:64px;font-weight:900;letter-spacing:10px;background:var(--sari);color:var(--lac);border-radius:18px;padding:6px 10px 6px 20px;display:inline-block;margin-top:8px}
+.alt{background:var(--lac);color:#fff;text-align:center;padding:16px;font-size:13px;font-weight:600}
+.alt span{opacity:.75}
+.rozet{background:var(--kirmizi);color:#fff;border-radius:20px;font-size:14px;padding:2px 10px}
+.satir{border-top:1px solid #edf0f3;padding:12px 0}
+.hatkutu{border:2px solid var(--cizgi);border-radius:14px;padding:4px 12px 12px;margin:12px 0}
+</style>
+</head>
+<body>
+<div id="kok"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script src="ayar.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
