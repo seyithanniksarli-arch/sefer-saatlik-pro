@@ -5,6 +5,9 @@ let OTOD=false,DINLE=[],GUNDIN=null,CIHAZ={d:'bilinmiyor'},CLIST={},KAYIT_T=null
 let TAKIP={p:null,t:null,plan:null,kil:null,kilDin:null,kilHb:null,gps:null,konum:null,cg:0,pay:false,uyar:{},olay:null},CTX=null;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Açılış "yükleniyor"da takılı kalırsa hatayı gizleme, ekranda göster.
+window.addEventListener('error',e=>{try{const k=$('kok');if(k&&/yükleniyor/i.test(k.textContent))k.innerHTML='<div class="tam"><div class="kutu"><h2>Bir hata oluştu</h2><p style="color:#ff6b6b;word-break:break-word">'+esc(e.message||'bilinmeyen hata')+'</p><p class="kucuk">Bu yazıyı bana ilet.</p><button class="ana" onclick="location.reload()">Tekrar dene</button></div></div>'}catch(_){}});
+window.addEventListener('unhandledrejection',e=>{try{const k=$('kok');if(k&&/yükleniyor/i.test(k.textContent)){const m=(e.reason&&e.reason.message)||String(e.reason||'bilinmeyen hata');k.innerHTML='<div class="tam"><div class="kutu"><h2>Bağlanamadı</h2><p style="color:#ff6b6b;word-break:break-word">'+esc(m)+'</p><p class="kucuk">Bu yazıyı bana ilet.</p><button class="ana" onclick="location.reload()">Tekrar dene</button></div></div>'}}catch(_){}});
 const LS={get:(k,d='')=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 const bugun=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const simdiSn=()=>{const n=new Date();return n.getHours()*3600+n.getMinutes()*60+n.getSeconds()};
@@ -96,9 +99,10 @@ function durakAc(){
  dinleKapat();TARIH=TARIH||bugun();
  tam('<h2>Durak yükleniyor…</h2>');
  let ilk=true;
- DINLE.push(dref(dp()).onSnapshot(d=>{const x=d.data();if(!x){if(ROL=='sofor'){LS.set('durak','');soforDurakSor()}else tam('<h2>Durak bulunamadı</h2><button class="ana" onclick="cikis()">Çıkış</button>');return}
+ const bekle=setTimeout(()=>{const k=$('kok');if(k&&/Durak yükleniyor/i.test(k.textContent))k.innerHTML='<div class="tam"><div class="kutu"><h2>Durak yüklenemedi</h2><p class="kucuk">Firebase\'den veri gelmedi. İnternet bağlantını kontrol edip tekrar dene.</p><button class="ana" onclick="location.reload()">Tekrar dene</button><button class="bag" onclick="cikis()">Çıkış</button></div></div>'},12000);
+ DINLE.push(dref(dp()).onSnapshot(d=>{clearTimeout(bekle);const x=d.data();if(!x){if(ROL=='sofor'){LS.set('durak','');soforDurakSor()}else tam('<h2>Durak bulunamadı</h2><button class="ana" onclick="cikis()">Çıkış</button>');return}
   A=x.ayar||bosAyar(x.ad);A._ad=x.ad||DURAK;if(!HAT||!A.hatlar.find(h=>h.id==HAT))HAT=LS.get('hat_'+DURAK)||A.hatlar[0].id;if(!A.hatlar.find(h=>h.id==HAT))HAT=A.hatlar[0].id;if(kahyaMi()){yolcuDurakYayinla();planYayinla()}
-  if(ilk){ilk=false;if(ROL=='sofor')cihazDinle();else{CIHAZ={d:'onay'};cihazListesiDinle();if(ROL=='kahya')kahyaCihazKaydet()}gunDinle()}else ciz()},e=>tam('<h2>Durak okunamadı</h2><p>'+esc(e.code)+'</p><button class="ana" onclick="cikis()">Çıkış</button>')));
+  if(ilk){ilk=false;if(ROL=='sofor')cihazDinle();else{CIHAZ={d:'onay'};cihazListesiDinle();if(ROL=='kahya')kahyaCihazKaydet()}gunDinle()}else ciz()},e=>{clearTimeout(bekle);tam('<h2>Durak okunamadı</h2><p>'+esc(e.code)+'</p><button class="ana" onclick="cikis()">Çıkış</button>')}));
 }
 function gunDinle(){if(GUNDIN)GUNDIN();if(!izinli()){kapi();return}
  GUNDIN=dref(dp('gunler',TARIH)).onSnapshot(d=>{const odak=document.activeElement;const yaziyor=odak&&$('kok').contains(odak)&&/INPUT|TEXTAREA/.test(odak.tagName);G=d.data()||{};clearTimeout(PLAN_T);PLAN_T=setTimeout(planYayinla,700);if(yaziyor&&kahyaMi())return;ciz();if(!OTOD){OTOD=true;setTimeout(otoTakip,0)}},e=>{G={};ciz();planYayinla()})}
