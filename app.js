@@ -1,8 +1,8 @@
 // app.js – Sefer Sırası (satılık sürüm): girişler, şoför ekranı, kahya ekranı, sahip paneli
 'use strict';
 let AUTH=null,FS=null,USER=null,ROL=null,DURAK=null,A=null,G={},TARIH=null,HAT=null,GORUNUM={gt:null,mv:null};
-let OTOD=false,DINLE=[],GUNDIN=null,CIHAZ={d:'bilinmiyor'},CLIST={},KAYIT_T=null,ACIK={takip:1,seferler:1};
-let TAKIP={p:null,t:null,plan:null,kil:null,kilDin:null,kilHb:null,gps:null,konum:null,cg:0,pay:false,uyar:{},olay:null},CTX=null;
+let OTOD=false,DINLE=[],GUNDIN=null,CIHAZ={d:'bilinmiyor'},CLIST={},KAYIT_T=null,ACIK={takip:1,seferler:1,dh:1};
+let TAKIP={p:null,t:null,plan:null,kil:null,kilDin:null,kilHb:null,gps:null,konum:null,cg:0,pay:false,uyar:{},olay:null},CTX=null,DH_HAR=null,DH_IM=[],DH_SEC='';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Açılış "yükleniyor"da takılı kalırsa hatayı gizleme, ekranda göster.
@@ -184,7 +184,7 @@ function ciz(){
   x+='<details class="bolum" data-k="ayar"'+ac('ayar')+'><summary>⚙️ Durak ayarları</summary>'+ayarHtml()+'</details>';
  }
  x+=carpiHtml(h)+'<div class="kucuk" style="text-align:center;margin:12px 0">'+(ROL=='sofor'?'Bu telefon onaylı · '+esc(CIHAZ.plaka||''):'')+'</div></div>'+alt;
- $('kok').innerHTML=x;telYenile();sayacGuncelle();
+ $('kok').innerHTML=x;telYenile();sayacGuncelle();setTimeout(dhKur,80);
 }
 function sirayaYaz(){const v=$('plakalar').value;gunYaz(g=>{g.hatlar=g.hatlar||{};const h=g.hatlar[HAT]=g.hatlar[HAT]||{};h.plakalar=v})}
 function turYaz(p,v){gunYaz(g=>{g.hatlar=g.hatlar||{};const h=g.hatlar[HAT]=g.hatlar[HAT]||{};h.tur=h.tur||{};h.tur[p]=v});ciz()}
@@ -225,6 +225,12 @@ function ayarHtml(){
    '<label>Mevsim</label>'+sec('mv_sec',[['yok','Yok'],['yazkis','Yaz / Kış'],['dort','İlkbahar / Yaz / Sonbahar / Kış']],mvSecOku(T.mevsimler),'mvSec(this.value)')+
    '<label>Araç kodları — yolcu sadece kodu görür</label><div id="kodListe">'+kc+'</div>'+
    '<div class="ikili"><input id="yk_plaka" placeholder="Plaka (86)"><input id="yk_kod" placeholder="Kod (M-01)" style="width:120px"><button class="ana mavi" style="width:auto;padding:10px 14px;margin:0" onclick="kodEkle()">Ekle</button></div>'+
+   '<details class="bolum" data-k="dh"'+ac('dh')+'><summary>🗺️ Durak haritası — listeden seç, haritaya tıkla</summary>'+
+   '<div class="ikili"><div><label>Durak</label><select id="dh_sec" onchange="dhSec()"></select></div>'+
+   '<div><label>Yeni durak ekle</label><div class="ikili"><input id="dh_yeni" placeholder="Durak adı">'+sec('dh_hat',T.hatlar.map((h,j)=>[j,h.ad||h.id]),T.hatlar.findIndex(h=>h.id==HAT))+'<button class="ana mavi" style="width:auto;padding:10px 12px;margin:0" onclick="dhYeni()">Ekle</button></div></div></div>'+
+   '<p class="kucuk">Seçili durağın yerine haritada tıkla. Katmanları sağ üstten (Harita / Harita 2 / Uydu) değiştirebilirsin. Sonra <b>Ayarları kaydet</b> tuşuna bas.</p>'+
+   '<div id="dh_harita" style="height:320px;border-radius:14px;margin:8px 0;background:#eef2f5"></div>'+
+   '<div class="ikili"><button class="ana kir" onclick="dhSil()">🗑 İşareti sil</button><span class="kucuk" id="dh_sayac"></span></div></details>'+
    '<details class="bolum"><summary>Gelişmiş: kod, koordinat, gün ve mevsim metinleri</summary><textarea id="a_kodlar" style="min-height:60px">'+esc(KOD_YAZ(T.aracKodlari))+'</textarea><textarea id="a_durkon" style="min-height:50px" placeholder="Metrobüs = 41.02, 28.59">'+esc(KOORD_YAZ(T.durakKonumlari))+'</textarea><textarea id="a_gt" style="min-height:60px">'+esc(GT_YAZ(T))+'</textarea><textarea id="a_mv" style="min-height:50px">'+esc(MV_YAZ(T))+'</textarea></details>';
  T.hatlar.forEach((h,i)=>{x+='<div class="hatkutu" style="border-color:'+esc(h.renk||'#d5dde5')+'"><h3>'+(i+1)+'. hat <span class="kucuk">(kod: '+esc(h.id)+')</span></h3>'+
   '<div class="ikili"><div><label>Hat adı</label><input id="h_ad_'+i+'" style="width:100%" value="'+esc(h.ad)+'"></div><div style="flex:0 0 90px"><label>Renk</label><input id="h_renk_'+i+'" type="color" style="width:100%;height:46px;padding:3px" value="'+esc(h.renk||'#1e63b8')+'"></div></div>'+
@@ -268,6 +274,66 @@ function durEkle(i){const a=($('ydad_'+i)||{}).value.trim(),d=($('yddk_'+i)||{})
 function durSil(i,j){const L=durSatirlari(i);L.splice(j,1);$('h_dur_'+i).value=L.join('\n');durCiz(i)}
 function durCiz(i){const el=$('durListe_'+i);if(!el)return;el.innerHTML=durSatirlari(i).map((s,j)=>'<span style="display:inline-block;background:#e6f6ee;color:#0f8a57;padding:5px 10px;border-radius:14px;margin:2px;font-size:14px">'+esc(s)+' <b style="cursor:pointer" onclick="durSil('+i+','+j+')">×</b></span>').join('')||'<span class="kucuk">Henüz durak yok.</span>'}
 async function konumAl(){if(!navigator.geolocation){alert('Telefon konum vermiyor.');return}navigator.geolocation.getCurrentPosition(q=>{if($('a_konum2'))$('a_konum2').value=q.coords.latitude.toFixed(4)+', '+q.coords.longitude.toFixed(4)},()=>alert('Konum izni verilmedi.'),{enableHighAccuracy:true,timeout:15000})}
+
+// ---- kahya durak haritası ----
+function dhListe(){const T=AYAR_TASLAK||A,D=[];(T.hatlar||[]).forEach(h=>(h.duraklar||[]).forEach(x=>{const a=(x.ad||'').trim();if(a&&!D.includes(a))D.push(a)}));return D}
+function dhKoord(){try{return KOORD_OKU(($('a_durkon')||{}).value||'')}catch(e){return {}}}
+function dhKoordYaz(K){const el=$('a_durkon');if(el)el.value=KOORD_YAZ(K);if(A)A.durakKonumlari=K}
+function dhSayac(){const b=$('dh_sayac');if(!b)return;const K=dhKoord();b.textContent=Object.keys(K).length+' / '+dhListe().length+' durak işaretli'}
+function dhSecDoldur(){
+ const s=$('dh_sec');if(!s)return;
+ const D=dhListe(),K=dhKoord(),sec=DH_SEC||s.value||D[0]||'';
+ s.innerHTML=D.length?D.map(a=>'<option value="'+esc(a)+'"'+(a===sec?' selected':'')+'>'+esc(a)+(K[a]?' ✓':'')+'</option>').join(''):'<option value="">(durak yok)</option>';
+ DH_SEC=sec;dhSayac();
+}
+function dhCiz(){
+ if(!DH_HAR||!window.L)return;
+ DH_IM.forEach(m=>m.remove());DH_IM=[];
+ const K=dhKoord();
+ Object.keys(K).forEach(a=>{const p=K[a];if(!p||p.lat==null)return;
+  DH_IM.push(L.circleMarker([p.lat,p.lng],{radius:9,color:'#0f8a57',weight:3,fillColor:'#ffcf33',fillOpacity:.9}).addTo(DH_HAR).bindTooltip(a,{permanent:true,direction:'top',offset:[0,-8]}))});
+ if(A&&A.konum&&A.konum.lat!=null)DH_IM.push(L.marker([A.konum.lat,A.konum.lng],{icon:L.divIcon({html:'<div style="background:#16507e;color:#fff;border-radius:8px;padding:3px 7px;font-size:12px;font-weight:800">DURAK</div>',className:'',iconAnchor:[22,10]})}).addTo(DH_HAR));
+ dhSayac();
+}
+function dhKur(){
+ const el=$('dh_harita');if(!el||!window.L)return;
+ if(DH_HAR){try{DH_HAR.remove()}catch(e){}DH_HAR=null}
+ DH_IM=[];
+ DH_HAR=L.map(el).setView([41.02,28.59],13);
+ const k1=L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{maxZoom:19,subdomains:'abc',attribution:'© OpenStreetMap'}),
+  k2=L.tileLayer('https://{s}.basemaps.cartocdn.org/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'© CARTO'}),
+  k3=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'});
+ k1.addTo(DH_HAR);L.control.layers({'Harita':k1,'Harita 2':k2,'Uydu':k3}).addTo(DH_HAR);
+ DH_HAR.on('click',ev=>dhTikla(ev.latlng.lat,ev.latlng.lng));
+ dhSecDoldur();dhCiz();
+ setTimeout(()=>{try{DH_HAR.invalidateSize()}catch(e){}},150);
+}
+function dhTikla(lat,lng){
+ const ad=(($('dh_sec')||{}).value||'')||DH_SEC||'';if(!ad){alert('Önce listeden bir durak seç.');return}
+ if(!confirm(ad+' buraya işaretlensin mi?'))return;
+ const K=dhKoord();K[ad]={lat:+lat.toFixed(5),lng:+lng.toFixed(5)};dhKoordYaz(K);
+ dhCiz();dhSecDoldur();
+}
+function dhSil(){
+ const ad=(($('dh_sec')||{}).value||'')||DH_SEC||'';if(!ad)return;const K=dhKoord();if(!K[ad]){alert('Bu durağın işareti yok.');return}
+ if(!confirm(ad+' işareti silinsin mi?'))return;
+ delete K[ad];dhKoordYaz(K);dhCiz();dhSecDoldur();
+}
+function dhYeni(){
+ const el=$('dh_yeni'),ad=((el||{}).value||'').trim();if(!ad){alert('Durak adını yaz.');return}
+ const T=AYAR_TASLAK||A,i=+($('dh_hat')||{}).value||0,h=T.hatlar[i];if(!h){alert('Hat bulunamadı.');return}
+ if(dhListe().includes(ad)){alert('Bu durak zaten var.');return}
+ const ta=$('h_dur_'+i);if(!ta){alert('Durak kutusu bulunamadı.');return}
+ ta.value=(ta.value.trim()?ta.value.trim()+'\n':'')+ad+': 0';
+ el.value='';DH_SEC=ad;dhSecDoldur();
+ alert(ad+' eklendi. Şimdi haritada yerine tıkla, sonra Ayarları kaydet.');
+}
+function dhSec(){
+ DH_SEC=($('dh_sec')||{}).value||'';
+ const p=dhKoord()[DH_SEC];if(p&&DH_HAR)DH_HAR.setView([p.lat,p.lng],16);
+ dhCiz();dhSecDoldur();
+}
+
 function formdanAyar(){
  const T=JSON.parse(JSON.stringify(AYAR_TASLAK||A));delete T._ad;
  T.durakAdi=$('a_ad').value.trim();T.konumDk=+$('a_konum').value||0;T.gunTurleri=GT_OKU($('a_gt').value);T.mevsimler=MV_OKU($('a_mv').value);
@@ -380,7 +446,7 @@ function sayacGuncelle(){
 // ================= yolcuya açık veri (plaka sızmaz) =================
 let PLAN_T=null;
 function yolcuDurakVerisi(kod,ad,Ay){
- return {ad:ad||Ay.durakAdi||kod,konum:Ay.konum||{lat:null,lng:null},
+ return {ad:ad||Ay.durakAdi||kod,konum:Ay.konum||{lat:null,lng:null},durakKonumlari:Ay.durakKonumlari||{},
   hatlar:(Ay.hatlar||[]).map(h=>({id:h.id,ad:h.ad,renk:h.renk||'',duraklar:(h.duraklar||[]).map(d=>d.ad)})),
   kodlar:[...new Set(Object.values(Ay.aracKodlari||{}))],z:Date.now()};
 }

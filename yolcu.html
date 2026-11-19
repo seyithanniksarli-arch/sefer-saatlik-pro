@@ -71,12 +71,12 @@ button{border:0;background:var(--lac);color:#fff;font-weight:800;margin-top:10px
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="config.js"></script>
+<script src="config.js?v=20261119f"></script>
 <script>
 'use strict';
 const LS={get:(k,d='')=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 const q=new URLSearchParams(location.search),QR_MOD=q.has('qr');
-let DB=null,DURAKLAR={},DU=null,PLAN=null,OLAY={},GOR=null,HAR=null,IM=[],qrBasildi=false;
+let DB=null,DURAKLAR={},DU=null,PLAN=null,OLAY={},GOR=null,HAR=null,IM=[],DM=[],qrBasildi=false;
 let secili=q.get('durak')||LS.get('ydurak')||'',nokta=q.get('nokta')||'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bugun=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -181,7 +181,16 @@ function haritaCiz(){
  if(QR_MOD)return;const el=document.getElementById('harita');if(!el||!window.L)return;
  if(!HAR){HAR=L.map(el).setView([41.02,28.59],13);const k1=L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',{maxZoom:19,subdomains:'abc',attribution:'© OpenStreetMap'}),k2=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'});k1.addTo(HAR);let n=0;k1.on('tileerror',()=>{if(++n==3){HAR.removeLayer(k1);k2.addTo(HAR)}})}
  if(DU&&DU.konum&&DU.konum.lat!=null)HAR.setView([DU.konum.lat,DU.konum.lng],15);
+  haritaDuraklar();
  haritaCanli();
+}
+function haritaDuraklar(){
+  if(QR_MOD||!HAR||!window.L)return;
+  DM.forEach(m=>m.remove());DM=[];
+  const K=(DU&&DU.durakKonumlari)||{};
+  Object.keys(K).forEach(a=>{const p=K[a];if(!p||p.lat==null)return;const akt=a===nokta;
+   const m=L.circleMarker([p.lat,p.lng],{radius:akt?11:7,color:akt?'#e74c3c':'#0f8a57',weight:akt?4:2,fillColor:akt?'#ffcf33':'#fff',fillOpacity:.95}).addTo(HAR).bindTooltip(a,{permanent:akt,direction:'top'});
+   m.on('click',()=>setTimeout(()=>noktaSec(a),0));DM.push(m)});
 }
 function haritaCanli(){
  if(QR_MOD||!HAR)return;IM.forEach(m=>m.remove());IM=[];
