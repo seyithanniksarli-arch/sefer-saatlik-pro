@@ -1,0 +1,119 @@
+﻿ESKI SEFER UYGULAMASI (sefer-ca13e) — DURAK AYARLARI
+Kaynak: Firestore ayar/duraklar (guncelleme 2026-11-15T01:02:25.405Z)
+Isaretli durak: 48 / 48
+
+=== 1) KOORDİNATLAR — PRO: Ayarlar > Gelişmiş > koordinat kutusuna yapıştır ===
+Fatih Market = 41.00327, 28.53254
+Doğan Gıda = 40.99322, 28.53390
+Makro Çarşı = 40.99592, 28.54015
+Denizgören = 41.00722, 28.53897
+Moroğlu = 41.00922, 28.54714
+Balıkçı = 41.01506, 28.56011
+Metrobüs = 41.02238, 28.62337
+TÜYAP = 41.02381, 28.62352
+Çekmece = 41.02102, 28.58202
+Mimar Sinan = 41.01514, 28.56001
+Meydan = 41.00767, 28.53953
+Makro = 40.99637, 28.54005
+Atrium = 40.99557, 28.53424
+Muratçeşme = 41.01811, 28.52739
+Göbek = 41.01364, 28.53448
+Akbelde = 41.01552, 28.54442
+Hastane = 41.01668, 28.55608
+Muratçeşme Sağlık Ocağı = 41.01565, 28.53155
+Hünkartepe Caddesi = 41.01383, 28.53411
+Yunus Emre Caddesi = 41.01399, 28.53648
+Kiptaş = 41.01526, 28.53814
+Dizdariye Caddesi = 41.01737, 28.54062
+Pir Sultan Sokak = 41.01682, 28.54199
+Akkent = 41.01619, 28.54319
+Eczane = 41.01965, 28.57827
+Büyükçekmece Atirus = 41.02107, 28.58293
+Büyükçekmece İŞKUR = 41.02245, 28.58470
+Fatih Mahallesi = 41.02467, 28.59136
+Tabya 1 = 41.02356, 28.59851
+Tabya 2 = 41.02434, 28.60308
+Akçimento = 41.01732, 28.55971
+Doğa Koleji = 41.02560, 28.60226
+Mimar Sinan Karayolları = 41.01894, 28.56522
+Mimar Sinan Camii = 41.01617, 28.56054
+Doç. Dr. Burhan Bahriyeli Lisesi = 41.01301, 28.55912
+Güzelce Yol Ağzı = 41.00079, 28.53244
+Billur Caddesi = 40.99861, 28.53327
+Çarmıklı Caddesi = 40.99752, 28.53416
+Villalar = 40.99133, 28.53711
+Sahil Tepe Villaları = 40.99041, 28.53954
+Sinanoba = 40.99193, 28.54036
+Mimar Sinan Konakları = 40.99796, 28.54111
+Mimaroba Muhtarlık = 41.00059, 28.54227
+Oba = 41.00286, 28.54266
+Dr. Sadık Ahmet İlkokulu = 41.00473, 28.54193
+Piri Reis Caddesi = 41.00796, 28.54332
+İnönü Caddesi = 41.00974, 28.55142
+Güzelsu = 41.01129, 28.55452
+
+=== 2) MİMARSİNAN DURAKLARI — PRO: hattın durak kutusuna yapıştır ===
+Fatih Market: 0
+Güzelce Yol Ağzı: 0
+Billur Caddesi: 0
+Çarmıklı Caddesi: 0
+Atrium: 65
+Doğan Gıda: 4
+Villalar: 0
+Sahil Tepe Villaları: 0
+Sinanoba: 0
+Makro Çarşı: 7
+Mimar Sinan Konakları: 0
+Mimaroba Muhtarlık: 0
+Oba: 0
+Dr. Sadık Ahmet İlkokulu: 0
+Meydan: 55
+Denizgören: 12
+Piri Reis Caddesi: 0
+Moroğlu: 0
+İnönü Caddesi: 0
+Güzelsu: 0
+Doç. Dr. Burhan Bahriyeli Lisesi: 0
+Balıkçı: 18
+Eczane: 0
+Büyükçekmece Atirus: 0
+Büyükçekmece İŞKUR: 0
+Fatih Mahallesi: 0
+Tabya 1: 0
+Tabya 2: 0
+Metrobüs: 27
+TÜYAP: 32
+Doğa Koleji: 0
+Çekmece: 40
+Mimar Sinan Karayolları: 0
+Mimar Sinan Camii: 0
+Mimar Sinan: 49
+Makro: 60
+
+=== 3) MURATÇEŞME DURAKLARI — PRO: hattın durak kutusuna yapıştır ===
+Muratçeşme: 0
+Muratçeşme Sağlık Ocağı: 0
+Hünkartepe Caddesi: 0
+Göbek: 3
+Yunus Emre Caddesi: 0
+Kiptaş: 5
+Dizdariye Caddesi: 0
+Pir Sultan Sokak: 0
+Akkent: 0
+Akbelde: 8
+Hastane: 45
+Balıkçı: 18
+Eczane: 0
+Büyükçekmece Atirus: 0
+Büyükçekmece İŞKUR: 0
+Fatih Mahallesi: 0
+Tabya 1: 0
+Tabya 2: 0
+Metrobüs: 27
+TÜYAP: 32
+Çekmece: 40
+Akçimento: 0
+
+NOT: Eski uygulamada duraklara ait "dk" (kalkışa göre dakika) bilgisi bu kayıtta yok.
+PRO örnek ayarında karşılığı olan durakların dakikası korundu; geri kalanlar 0 yazıldı.
+Dakikası 0 olan duraklar: Fatih Market, Güzelce Yol Ağzı, Billur Caddesi, Çarmıklı Caddesi, Villalar, Sahil Tepe Villaları, Sinanoba, Mimar Sinan Konakları, Mimaroba Muhtarlık, Oba, Dr. Sadık Ahmet İlkokulu, Piri Reis Caddesi, Moroğlu, İnönü Caddesi, Güzelsu, Doç. Dr. Burhan Bahriyeli Lisesi, Eczane, Büyükçekmece Atirus, Büyükçekmece İŞKUR, Fatih Mahallesi, Tabya 1, Tabya 2, Doğa Koleji, Mimar Sinan Karayolları, Mimar Sinan Camii, Muratçeşme, Muratçeşme Sağlık Ocağı, Hünkartepe Caddesi, Yunus Emre Caddesi, Dizdariye Caddesi, Pir Sultan Sokak, Akkent, Akçimento

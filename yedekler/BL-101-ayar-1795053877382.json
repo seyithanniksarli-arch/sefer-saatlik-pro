@@ -1,0 +1,84 @@
+{
+ "mevsimler": [],
+ "aracKodlari": {},
+ "konumDk": 5,
+ "durakAdi": "tepecik-türkoba",
+ "gunTurleri": [
+  {
+   "id": "hi",
+   "ad": "Hafta içi",
+   "gunler": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ]
+  },
+  {
+   "id": "hs",
+   "ad": "Hafta sonu",
+   "gunler": [
+    0,
+    6
+   ]
+  }
+ ],
+ "durakKonumlari": {},
+ "konum": {
+  "lat": null,
+  "lng": null
+ },
+ "carpi": {
+  "tur": "sefer",
+  "ucret": 0,
+  "not": "",
+  "tolerans": 0
+ },
+ "surum": 1,
+ "hatlar": [
+  {
+   "id": "hat1",
+   "ad": "1. hat",
+   "renk": "#1e63b8",
+   "kalkis": "Kalkış",
+   "sonSefer": "22:00",
+   "turSuresi": 60,
+   "turler": [
+    {
+     "id": "normal",
+     "ad": "Normal",
+     "son": "22:00"
+    }
+   ],
+   "duraklar": [],
+   "tarife": {
+    "hi": {
+     "sabit": [
+      "06:00"
+     ],
+     "bantlar": [
+      {
+       "bas": "06:00",
+       "bit": "22:00",
+       "aralik": 10
+      }
+     ]
+    },
+    "hs": {
+     "sabit": [
+      "07:00"
+     ],
+     "bantlar": [
+      {
+       "bas": "07:00",
+       "bit": "22:00",
+       "aralik": 15
+      }
+     ]
+    }
+   },
+   "uzatmalar": []
+  }
+ ]
+}
