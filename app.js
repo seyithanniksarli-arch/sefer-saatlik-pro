@@ -210,23 +210,29 @@ async function veriYapistir(){
 let AYAR_TASLAK=null;
 function ayarHtml(){
  const T=AYAR_TASLAK||A;
- let x='<p class="kucuk">Buradaki değişiklikler "Ayarları kaydet" tuşuna basınca bütün şoförlere geçer. İstersen bana durağını anlat, ben hazır ayar yazayım; sen de "Ayarları yapıştır" ile tek seferde yükle.</p>'+
-  '<div class="ikili"><button class="ana lac" onclick="ayarKopyala()">Ayarları kopyala</button><button class="ana" onclick="ayarYapistirAc()">Ayarları yapıştır</button></div><div id="ayYap"></div>'+
-  '<label>Durak adı</label><input id="a_ad" style="width:100%" value="'+esc(T.durakAdi||A._ad)+'">'+
-  '<label>Konum yolcuya kaç dakika kala açılsın</label><input id="a_konum" type="number" style="width:100px" value="'+esc(T.konumDk==null?5:T.konumDk)+'">'+
-  '<label>Araç kodları (plaka = yolcu kodu) — yolcuya sadece kod görünür</label><textarea id="a_kodlar" style="min-height:70px" placeholder="72 = M-14">'+esc(KOD_YAZ(T.aracKodlari))+'</textarea><p class="kucuk">Her satır: <b>plaka = kod</b>. Yolcu plakayı hiç görmez.</p>'+
-  '<label>Durağın konumu (konumdan seçim için) — enlem, boylam</label><input id="a_konum2" placeholder="41.0200, 28.5900" style="width:100%" value="'+esc(KONUM_YAZ(T.konum))+'">'+
-  '<label>Durak noktalarının koordinatları (GPS için; şimdilik boş bırakabilirsin)</label><textarea id="a_durkon" style="min-height:60px" placeholder="Metrobüs = 41.0200, 28.5900">'+esc(KOORD_YAZ(T.durakKonumlari))+'</textarea>'+
-  '<label>Gün türleri (üstteki tuşlar)</label><textarea id="a_gt" style="min-height:80px">'+esc(GT_YAZ(T))+'</textarea><p class="kucuk">Her satır: <b>kod = Tuş adı: günler</b>. Örnek: <b>hi = Hafta içi: Pzt Sal Çar Per Cum</b>. Her gün ayrı tuş istersen 7 satır yaz.</p>'+
-  '<label>Mevsimler (boş bırakırsan yaz/kış tuşu çıkmaz)</label><textarea id="a_mv" style="min-height:60px">'+esc(MV_YAZ(T))+'</textarea><p class="kucuk">Örnek: <b>kis = Kış: Eki Kas Ara Oca Şub Mar Nis</b>. Mevsime özel saat için tarifede <b>[hi_kis]</b> yaz.</p>';
- T.hatlar.forEach((h,i)=>{x+='<div class="hatkutu" style="border-color:'+esc(h.renk||'#d5dde5')+'"><h3>'+(i+1)+'. hat <span class="kucuk">(kod: '+esc(h.id)+')</span></h3>'+
+  const sec=(id,ops,val,fn)=>'<select id="'+id+'"'+(fn?' onchange="'+fn+'"':'')+' style="width:100%">'+ops.map(o=>'<option value="'+o[0]+'"'+(o[0]==val?' selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select>';
+ const kc=Object.entries(T.aracKodlari||{}).map(([p,k],i)=>'<span style="display:inline-block;background:#10202e;color:#ffcf33;padding:5px 10px;border-radius:14px;margin:2px;font-size:14px">'+esc(p+' = '+k)+' <b style="cursor:pointer;color:#fff" onclick="kodSil('+i+')">×</b></span>').join('')||'<span class="kucuk">Henüz kod yok, aşağıdan ekle.</span>';
+ let x='<p class="kucuk">Kutuları seç, "Ayarları kaydet" tuşuna bas. Elle yazmak istersen "Gelişmiş" kutularını aç.</p>'+
+   '<div class="ikili"><button class="ana lac" onclick="ayarKopyala()">Ayarları kopyala</button><button class="ana" onclick="ayarYapistirAc()">Ayarları yapıştır</button></div><div id="ayYap"></div>'+
+   '<label>Durak adı</label><input id="a_ad" style="width:100%" value="'+esc(T.durakAdi||A._ad)+'">'+
+   '<div class="ikili"><div><label>Bildirim kaç dk kala</label>'+sec('a_konum',[['0','Kalkış anında'],['3','3 dk önce'],['5','5 dk önce'],['10','10 dk önce'],['15','15 dk önce']],String(T.konumDk==null?5:T.konumDk))+'</div>'+
+   '<div><label>Durağın konumu</label><div class="ikili"><input id="a_konum2" placeholder="41.02, 28.59" value="'+esc(KONUM_YAZ(T.konum))+'"><button class="ana gri" style="width:auto;padding:10px;margin:0" onclick="konumAl()">📍 Al</button></div></div></div>'+
+   '<label>Gün düzeni</label>'+sec('gt_sec',[['iki','Hafta içi + hafta sonu'],['uc','Hafta içi / Cmt / Paz'],['tek','Her gün aynı']],gtSecOku(T.gunTurleri),'gtSec(this.value)')+
+   '<label>Mevsim</label>'+sec('mv_sec',[['yok','Yok'],['yazkis','Yaz / Kış'],['dort','İlkbahar / Yaz / Sonbahar / Kış']],mvSecOku(T.mevsimler),'mvSec(this.value)')+
+   '<label>Araç kodları — yolcu sadece kodu görür</label><div id="kodListe">'+kc+'</div>'+
+   '<div class="ikili"><input id="yk_plaka" placeholder="Plaka (86)"><input id="yk_kod" placeholder="Kod (M-01)" style="width:120px"><button class="ana mavi" style="width:auto;padding:10px 14px;margin:0" onclick="kodEkle()">Ekle</button></div>'+
+   '<details class="bolum"><summary>Gelişmiş: kod, koordinat, gün ve mevsim metinleri</summary><textarea id="a_kodlar" style="min-height:60px">'+esc(KOD_YAZ(T.aracKodlari))+'</textarea><textarea id="a_durkon" style="min-height:50px" placeholder="Metrobüs = 41.02, 28.59">'+esc(KOORD_YAZ(T.durakKonumlari))+'</textarea><textarea id="a_gt" style="min-height:60px">'+esc(GT_YAZ(T))+'</textarea><textarea id="a_mv" style="min-height:50px">'+esc(MV_YAZ(T))+'</textarea></details>'+
+T.hatlar.forEach((h,i)=>{x+='<div class="hatkutu" style="border-color:'+esc(h.renk||'#d5dde5')+'"><h3>'+(i+1)+'. hat <span class="kucuk">(kod: '+esc(h.id)+')</span></h3>'+
   '<div class="ikili"><div><label>Hat adı</label><input id="h_ad_'+i+'" style="width:100%" value="'+esc(h.ad)+'"></div><div style="flex:0 0 90px"><label>Renk</label><input id="h_renk_'+i+'" type="color" style="width:100%;height:46px;padding:3px" value="'+esc(h.renk||'#1e63b8')+'"></div></div>'+
   '<div class="ikili"><div><label>Kalkış yeri</label><input id="h_kalkis_'+i+'" style="width:100%" value="'+esc(h.kalkis||'')+'"></div><div><label>Son sefer</label><input id="h_son_'+i+'" style="width:100%" value="'+esc(h.sonSefer)+'"></div><div><label>Tur (dk)</label><input id="h_tur_'+i+'" type="number" style="width:100%" value="'+esc(h.turSuresi)+'"></div></div>'+
-  '<label>Araç türleri ve son kalkış saatleri (ilk satır varsayılan)</label><textarea id="h_turler_'+i+'" style="min-height:70px">'+esc(TUR_YAZ(h))+'</textarea><p class="kucuk">Örnek: <b>nobetci = Nöbetçi: 23:00</b></p>'+
-  '<label>Duraklar ve kalkıştan kaç dakika sonra</label><textarea id="h_dur_'+i+'">'+esc(DUR_YAZ(h))+'</textarea><p class="kucuk">Örnek: <b>Metrobüs: 30</b>. Son durak tur süresidir.</p>'+
-  '<label>Sefer saatleri</label><textarea id="h_tar_'+i+'" style="min-height:160px">'+esc(TAR_YAZ(h))+'</textarea><p class="kucuk">Her gün türü için <b>[kod]</b> satırı, altına <b>sabit:</b> ilk saatler, sonra <b>07:30-08:30 5</b> gibi aralık satırları (5 dakikada bir). 7,5 gibi küsurat olur.</p>'+
-  '<label>Standart uzatmalar</label><textarea id="h_uz_'+i+'">'+esc(UZ_YAZ(h.uzatmalar,true))+'</textarea><p class="kucuk">Örnek: <b>hi 07:24-08:30 Metrobüs=2, Atrium=6</b>. Başa gün türü kodu (birden çok: <b>hi,cmt</b>; her gün: <b>hepsi</b>).</p>'+
-  (T.hatlar.length>1?'<button class="ana kir" style="padding:10px;font-size:16px" onclick="hatSil('+i+')">Bu hattı sil</button>':'')+'</div>'});
+     '<label>Araç türü</label>'+sec('htur_sec_'+i,[['bir','Tek tür (varsayılan)'],['iki','Normal + nöbetçi (23:00)']],turSecOku(h),'turSec('+i+',this.value)')+
+   '<label>Duraklar — kalkıştan sonra kaçıncı dk</label><div id="durListe_'+i+'">'+dc(h.duraklar,i)+'</div>'+
+   '<div class="ikili"><input id="ydad_'+i+'" placeholder="Durak adı"><input id="yddk_'+i+'" type="number" placeholder="Dk" style="width:90px"><button class="ana mavi" style="width:auto;padding:10px 14px;margin:0" onclick="durEkle('+i+')">Ekle</button></div>'+
+   '<label>Sefer sıklığı</label><div class="ikili"><div>'+sec('tf_'+i,[['5','5 dakikada bir'],['10','10 dakikada bir'],['15','15 dakikada bir'],['20','20 dakikada bir'],['30','30 dakikada bir'],['60','Saatlik']],String(tarFreq(h)),'tarUygula('+i+')')+'</div>'+
+   '<div><label>Başlangıç</label><input id="tb_'+i+'" value="06:00" onchange="tarUygula('+i+')" style="width:100%"></div>'+
+   '<div><label>Bitiş</label><input id="tb2_'+i+'" value="22:00" onchange="tarUygula('+i+')" style="width:100%"></div></div>'+
+   '<details class="bolum"><summary>Gelişmiş: durak, saat ve uzatma metinleri</summary><textarea id="h_turler_'+i+'" style="min-height:60px">'+esc(TUR_YAZ(h))+'</textarea><textarea id="h_dur_'+i+'" style="min-height:70px">'+esc(DUR_YAZ(h))+'</textarea><textarea id="h_tar_'+i+'" style="min-height:130px">'+esc(TAR_YAZ(h))+'</textarea><textarea id="h_uz_'+i+'" style="min-height:60px">'+esc(UZ_YAZ(h.uzatmalar,true))+'</textarea></details>'+
+(T.hatlar.length>1?'<button class="ana kir" style="padding:10px;font-size:16px" onclick="hatSil('+i+')">Bu hattı sil</button>':'')+'</div>'});
  const C=T.carpi||{};
  x+='<button class="ana gri" style="padding:10px;font-size:16px" onclick="hatEkle()">+ Hat ekle</button>'+
   '<div class="hatkutu"><h3>Çarpı kuralı</h3><label>Çarpı nasıl hesaplanır</label><select id="c_tur" style="width:100%"><option value="sefer"'+(C.tur!='dakika'?' selected':'')+'>Sefer başı sabit ücret</option><option value="dakika"'+(C.tur=='dakika'?' selected':'')+'>Dakika başı ücret</option></select>'+
@@ -235,6 +241,29 @@ function ayarHtml(){
   '<button class="ana" onclick="ayarKaydet()">Ayarları kaydet</button>'+(AYAR_TASLAK?'<button class="ana gri" onclick="AYAR_TASLAK=null;ciz()">Değişikliklerden vazgeç</button>':'');
  return x;
 }
+// ---- sade ayar paneli yardımcıları ----
+function gtSecOku(G){if(!G||G.length<2)return 'tek';return (G.length===2&&(G[0].gunler||[]).length===5)?'iki':'uc'}
+function mvSecOku(M){if(!M||!M.length)return 'yok';return M.length===2?'yazkis':'dort'}
+function turSecOku(h){return ((h.turler||[]).length>1)?'iki':'bir'}
+function tarFreq(h){const K=Object.keys(h.tarife||{}),T=K.length?(h.tarife[K[0]]||{}):{},B=T.bantlar||[];return String(B.length?B[0].aralik:10)}
+function gtSec(v){const M={iki:'hi = Hafta içi: Pzt Sal Çar Per Cum\nhs = Hafta sonu: Paz Cmt',uc:'hi = Hafta içi: Pzt Sal Çar Per Cum\ncmt = Cumartesi: Cmt\npaz = Pazar: Paz',tek:'hepsi = Her gün: Paz Pzt Sal Çar Per Cum Cmt'};if($('a_gt'))$('a_gt').value=M[v]||M.iki;tarTum()}
+function mvSec(v){const M={yok:'',yazkis:'yaz = Yaz: Nis May Haz Tem Ağu Eyl\nkis = Kış: Eki Kas Ara Oca Şub Mar',dort:'ilkbahar = İlkbahar: Mar Nis May\nyaz = Yaz: Haz Tem Ağu\nsonbahar = Sonbahar: Eyl Eki Kas\nkis = Kış: Ara Oca Şub'};if($('a_mv'))$('a_mv').value=M[v]||'';tarTum()}
+function turSec(i,v){const son=($('h_son_'+i)||{}).value||'22:00';const M={bir:'normal = Normal: '+son,iki:'normal = Normal: '+son+'\nnobetci = Nöbetçi: 23:00'};if($('h_turler_'+i))$('h_turler_'+i).value=M[v]||M.bir}
+function tarUygula(i){const el=$('h_tar_'+i);if(!el)return;const bas=($('tb_'+i)||{}).value.trim()||'06:00',bit=($('tb2_'+i)||{}).value.trim()||'22:00',ar=+($('tf_'+i)||{}).value||10;
+ let gs=[],ms=[];try{gs=GT_OKU($('a_gt').value).map(g=>g.id);ms=MV_OKU($('a_mv').value).map(m=>m.id)}catch(e){}
+ const keys=[];gs.forEach(g=>{if(ms.length)ms.forEach(m=>keys.push(g+'_'+m));else keys.push(g)});
+ el.value=keys.map(k=>'['+k+']\nsabit: '+bas+'\n'+bas+'-'+bit+' '+dkYaz(ar)).join('\n\n')}
+function tarTum(){const T=AYAR_TASLAK||A;(T.hatlar||[]).forEach((h,i)=>tarUygula(i))}
+function kodSatirlari(){return String(($('a_kodlar')||{}).value||'').split('\n').map(x=>x.trim()).filter(x=>x)}
+function kodCiz(){const el=$('kodListe');if(!el)return;el.innerHTML=kodSatirlari().map((s,i)=>'<span style="display:inline-block;background:#10202e;color:#ffcf33;padding:5px 10px;border-radius:14px;margin:2px;font-size:14px">'+esc(s)+' <b style="cursor:pointer;color:#fff" onclick="kodSil('+i+')">×</b></span>').join('')||'<span class="kucuk">Henüz kod yok.</span>'}
+function kodEkle(){const p=($('yk_plaka')||{}).value.trim(),k=($('yk_kod')||{}).value.trim();if(!p||!k){alert('Plaka ve kodunu yaz.');return}const L=kodSatirlari().filter(x=>x.split('=')[0].trim().toUpperCase()!==p.toUpperCase());L.push(p+' = '+k);$('a_kodlar').value=L.join('\n');$('yk_plaka').value='';$('yk_kod').value='';kodCiz()}
+function kodSil(i){const L=kodSatirlari();L.splice(i,1);$('a_kodlar').value=L.join('\n');kodCiz()}
+function durSatirlari(i){return String(($('h_dur_'+i)||{}).value||'').split('\n').map(x=>x.trim()).filter(x=>x)}
+function dc(L,i){return (L||[]).map((d,j)=>'<span style="display:inline-block;background:#e6f6ee;color:#0f8a57;padding:5px 10px;border-radius:14px;margin:2px;font-size:14px">'+esc(d.ad+': '+dkYaz(d.dk))+' <b style="cursor:pointer" onclick="durSil('+i+','+j+')">×</b></span>').join('')||'<span class="kucuk">Henüz durak yok.</span>'}
+function durEkle(i){const a=($('ydad_'+i)||{}).value.trim(),d=($('yddk_'+i)||{}).value.trim();if(!a||d==''){alert('Durak adı ve dakika yaz.');return}const L=durSatirlari(i).filter(x=>x.split(':')[0].trim()!==a);L.push(a+': '+d);$('h_dur_'+i).value=L.join('\n');$('ydad_'+i).value='';$('yddk_'+i).value='';durCiz(i)}
+function durSil(i,j){const L=durSatirlari(i);L.splice(j,1);$('h_dur_'+i).value=L.join('\n');durCiz(i)}
+function durCiz(i){const el=$('durListe_'+i);if(!el)return;el.innerHTML=durSatirlari(i).map((s,j)=>'<span style="display:inline-block;background:#e6f6ee;color:#0f8a57;padding:5px 10px;border-radius:14px;margin:2px;font-size:14px">'+esc(s)+' <b style="cursor:pointer" onclick="durSil('+i+','+j+')">×</b></span>').join('')||'<span class="kucuk">Henüz durak yok.</span>'}
+async function konumAl(){if(!navigator.geolocation){alert('Telefon konum vermiyor.');return}navigator.geolocation.getCurrentPosition(q=>{if($('a_konum2'))$('a_konum2').value=q.coords.latitude.toFixed(4)+', '+q.coords.longitude.toFixed(4)},()=>alert('Konum izni verilmedi.'),{enableHighAccuracy:true,timeout:15000})}
 function formdanAyar(){
  const T=JSON.parse(JSON.stringify(AYAR_TASLAK||A));delete T._ad;
  T.durakAdi=$('a_ad').value.trim();T.konumDk=+$('a_konum').value||0;T.gunTurleri=GT_OKU($('a_gt').value);T.mevsimler=MV_OKU($('a_mv').value);
