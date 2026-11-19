@@ -276,13 +276,17 @@ function durCiz(i){const el=$('durListe_'+i);if(!el)return;el.innerHTML=durSatir
 async function konumAl(){if(!navigator.geolocation){alert('Telefon konum vermiyor.');return}navigator.geolocation.getCurrentPosition(q=>{if($('a_konum2'))$('a_konum2').value=q.coords.latitude.toFixed(4)+', '+q.coords.longitude.toFixed(4)},()=>alert('Konum izni verilmedi.'),{enableHighAccuracy:true,timeout:15000})}
 
 // ---- kahya durak haritası ----
-function dhListe(){const T=AYAR_TASLAK||A,D=[];(T.hatlar||[]).forEach(h=>(h.duraklar||[]).forEach(x=>{const a=(x.ad||'').trim();if(a&&!D.includes(a))D.push(a)}));return D}
+function dhListe(){const T=AYAR_TASLAK||A,D=[];(T.hatlar||[]).forEach((h,i)=>{
+ const ta=$('h_dur_'+i),L=ta?String(ta.value||'').split('\n'):(h.duraklar||[]).map(x=>x.ad||x);
+ L.forEach(x=>{const a=String(typeof x==='string'?x.split(':')[0]:x||'').trim();if(a&&!D.includes(a))D.push(a)});
+});return D}
 function dhKoord(){try{return KOORD_OKU(($('a_durkon')||{}).value||'')}catch(e){return {}}}
 function dhKoordYaz(K){const el=$('a_durkon');if(el)el.value=KOORD_YAZ(K);if(A)A.durakKonumlari=K}
 function dhSayac(){const b=$('dh_sayac');if(!b)return;const K=dhKoord();b.textContent=Object.keys(K).length+' / '+dhListe().length+' durak işaretli'}
 function dhSecDoldur(){
  const s=$('dh_sec');if(!s)return;
  const D=dhListe(),K=dhKoord(),sec=DH_SEC||s.value||D[0]||'';
+ if(sec&&!D.includes(sec))D.push(sec);
  s.innerHTML=D.length?D.map(a=>'<option value="'+esc(a)+'"'+(a===sec?' selected':'')+'>'+esc(a)+(K[a]?' ✓':'')+'</option>').join(''):'<option value="">(durak yok)</option>';
  DH_SEC=sec;dhSayac();
 }
